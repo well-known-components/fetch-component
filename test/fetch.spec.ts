@@ -102,39 +102,27 @@ describe('fetchComponent', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  // it.only('should allow setting a timeout for the request', async () => {
-  //     fetchMock.mockImplementation(() => {
-  //         return new Promise((resolve) => setTimeout(() => resolve(new Response('success', {
-  //             status: 200,
-  //             headers: { 'Content-Type': 'text/plain' }
-  //         })), 1500))
-  //     })
+  it('should make a successful request if timeout threshold is not reached', async () => {
+    const expectedResponseBody = { mock: 'successful' }
 
-  //     await expect(
-  //         sut.fetch('https://example.com', {
-  //         timeout: 500,
-  //     } as any)
-  //     ).rejects.toThrow('timeout')
+    fetchMock.mockImplementation(() => {
+      return new Promise((resolve) => {
+        setTimeout(
+          () =>
+            resolve(
+              new Response(JSON.stringify(expectedResponseBody), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              })
+            ),
+          2000
+        )
+      })
+    })
 
-  //     expect(fetchMock).toHaveBeenCalledTimes(1)
-  // })
+    const response = await (await sut.fetch('https://example.com', { timeout: 3000 } as any)).json()
 
-  // it('should allow aborting the request', async () => {
-  //     const controller = new AbortController()
-  //     const fetchSpy = jest.spyOn(crossFetch, 'default').mockImplementation(() => {
-  //     return new Promise((resolve) => setTimeout(() => resolve(new Response()), 5000))
-  //     })
-
-  //     setTimeout(() => {
-  //     controller.abort()
-  //     }, 100)
-
-  //     await expect(
-  //     fetchComponent.fetch('https://example.com', {
-  //         signal: controller.signal,
-  //     })
-  //     ).rejects.toThrow('aborted')
-
-  //     expect(fetchSpy).toHaveBeenCalledWith('https://example.com', { signal: controller.signal })
-  // })
+    expect(response).toEqual(expectedResponseBody)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })
