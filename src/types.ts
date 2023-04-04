@@ -8,15 +8,21 @@ export type RequestOptions = nodeFetch.RequestInit & {
   retryDelay?: number
 }
 
+const NON_RETRYABLE_STATUS_CODES = [404, 400, 401, 403]
+const IDEMPOTENT_HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']
+
 export function createFetchComponent(defaultHeaders?: Headers): IFetchComponent {
   async function fetch(url: nodeFetch.RequestInfo, options?: RequestOptions): Promise<nodeFetch.Response> {
-    const { timeout, attempts = 1, retryDelay = 0, ...fetchOptions } = options || {}
+    const { timeout, method = 'GET', retryDelay = 0, ...fetchOptions } = options || {}
+    let attempts = fetchOptions.attempts || 1
     let timer: NodeJS.Timeout | null = null
     let response: Response = new Response()
 
     if (defaultHeaders) {
       fetchOptions.headers = { ...(fetchOptions.headers || {}), ...defaultHeaders }
     }
+
+    if (!IDEMPOTENT_HTTP_METHODS.includes(method.toUpperCase())) attempts = 1
 
     let currentAttempt = 0
     do {
@@ -49,7 +55,7 @@ export function createFetchComponent(defaultHeaders?: Headers): IFetchComponent 
 
         if (timer) clearTimeout(timer)
       } finally {
-        if (response.ok || currentAttempt >= attempts) break
+        if (response.ok || NON_RETRYABLE_STATUS_CODES.includes(response.status) || currentAttempt >= attempts) break
         else await new Promise((resolve) => setTimeout(resolve, retryDelay))
       }
     } while (!response.ok && currentAttempt < attempts)
