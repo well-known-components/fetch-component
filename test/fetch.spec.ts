@@ -76,9 +76,10 @@ describe('fetchComponent', () => {
   })
 
   it('should throw a timeout error when the timeout threshold is reached', async () => {
+    let timer = undefined
     fetchMock.mockImplementation(() => {
-      return new Promise((resolve) =>
-        setTimeout(
+      return new Promise((resolve) => {
+        timer = setTimeout(
           () =>
             resolve(
               new Response('success', {
@@ -88,7 +89,7 @@ describe('fetchComponent', () => {
             ),
           3500
         )
-      )
+      })
     })
 
     await expect(
@@ -97,6 +98,7 @@ describe('fetchComponent', () => {
       } as any)
     ).rejects.toThrow(`Failed to fetch https://example.com. Got status 408. Response was 'timeout'`)
 
+    clearTimeout(timer)
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
