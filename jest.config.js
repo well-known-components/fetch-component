@@ -12,4 +12,5 @@ module.exports = {
   verbose: true,
   testMatch: ["**/*.spec.(ts)"],
   testEnvironment: "node",
+  setupFiles: [ "<rootDir>/test/setup.server.js" ]
 }
