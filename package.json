@@ -29,7 +29,7 @@
   "homepage": "https://github.com/well-known-components/base-component#readme",
   "devDependencies": {
     "@dcl/eslint-config": "^1.1.1",
-    "@microsoft/api-extractor": "^7.17.0",
+    "@microsoft/api-extractor": "^7.34.7",
     "@types/jest": "^28.1.0",
     "jest": "^28.1.0",
     "jest-fetch-mock": "^3.0.3",
