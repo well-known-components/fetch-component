@@ -12,10 +12,14 @@ export type RequestOptions = nodeFetch.RequestInit & {
 const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404]
 const IDEMPOTENT_HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']
 
-export function createFetchComponent(defaultHeaders?: Headers): IFetchComponent {
+export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent {
   async function fetch(url: nodeFetch.RequestInfo, options?: RequestOptions): Promise<nodeFetch.Response> {
     const { timeout, method = 'GET', retryDelay = 0, abortController, ...fetchOptions } = options || {}
+    const controller = abortController || new AbortController()
+    const { signal: timeoutSignal } = controller
+
     let attempts = fetchOptions.attempts || 1
+    let currentAttempt = 0
     let timer: NodeJS.Timeout | null = null
     let response: Response | undefined = undefined
 
@@ -23,12 +27,8 @@ export function createFetchComponent(defaultHeaders?: Headers): IFetchComponent 
 
     if (!IDEMPOTENT_HTTP_METHODS.includes(method.toUpperCase())) attempts = 1
 
-    const controller = abortController || new AbortController()
-    const { signal: timeoutSignal } = controller
-    let currentAttempt = 0
     do {
       try {
-
         if (timeout) {
           timer = setTimeout(() => {
             controller.abort()
@@ -37,6 +37,7 @@ export function createFetchComponent(defaultHeaders?: Headers): IFetchComponent 
 
         const fetchPromise = crossFetch.default(url.toString(), {
           ...fetchOptions,
+          method,
           signal: timeoutSignal
         } as any)
 

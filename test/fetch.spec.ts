@@ -125,4 +125,31 @@ describe('fetchComponent', () => {
     expect(response).toEqual(expectedResponseBody)
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
+
+  function hasHeader(headers: HeadersInit, headerKey: string): boolean {
+    if (headers instanceof Headers) {
+      return headers.has(headerKey)
+    } else if (Array.isArray(headers)) {
+      return headers.some(([key]) => key === headerKey)
+    } else {
+      return headerKey in headers
+    }
+  }
+
+  it('should make a successful request with defaultHeaders', async () => {
+    const customHeader = { 'X-Custom': 'Test' }
+
+    sut = createFetchComponent(customHeader)
+
+    fetchMock.mockResolvedValue(
+      new Response('test', {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    await sut.fetch('https://example.com')
+
+    expect(fetchMock.mock.calls[0][1].headers).toEqual(customHeader)
+  })
 })
