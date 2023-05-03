@@ -1,4 +1,4 @@
-import { createFetchComponent } from '../src/types'
+import { createFetchComponent } from './../src/index'
 
 describe('How to', () => {
   it('abort a request', async () => {

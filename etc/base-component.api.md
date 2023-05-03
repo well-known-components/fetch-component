@@ -4,9 +4,10 @@
 
 ```ts
 
-// @public
-export function example(): boolean;
+import { IFetchComponent } from '@well-known-components/interfaces';
 
+// @public (undocumented)
+export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent;
 
 // (No @packageDocumentation comment for this package)
 
