@@ -126,16 +126,6 @@ describe('fetchComponent', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  function hasHeader(headers: HeadersInit, headerKey: string): boolean {
-    if (headers instanceof Headers) {
-      return headers.has(headerKey)
-    } else if (Array.isArray(headers)) {
-      return headers.some(([key]) => key === headerKey)
-    } else {
-      return headerKey in headers
-    }
-  }
-
   it('should make a successful request with defaultHeaders', async () => {
     const customHeader = { 'X-Custom': 'Test' }
 
@@ -151,5 +141,141 @@ describe('fetchComponent', () => {
     await sut.fetch('https://example.com')
 
     expect(fetchMock.mock.calls[0][1].headers).toEqual(customHeader)
+  })
+
+  it('should not retry when performing a POST', async () => {
+    const expectedResponseBody = { mock: 'successful' }
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('test error', {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(expectedResponseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+
+    await expect(
+      sut.fetch('https://example.com', {
+        method: 'POST',
+        attempts: 3,
+        retryDelay: 10
+      } as any)
+    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 503. Response was 'test error'`)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not retry when receiving a 400 status code error', async () => {
+    const expectedResponseBody = { mock: 'successful' }
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('test error', {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(expectedResponseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+
+    await expect(
+      sut.fetch('https://example.com', {
+        attempts: 3,
+        retryDelay: 10
+      } as any)
+    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 400. Response was 'test error'`)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not retry when receiving a 401 status code error', async () => {
+    const expectedResponseBody = { mock: 'successful' }
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('test error', {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(expectedResponseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+
+    await expect(
+      sut.fetch('https://example.com', {
+        attempts: 3,
+        retryDelay: 10
+      } as any)
+    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 401. Response was 'test error'`)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not retry when receiving a 403 status code error', async () => {
+    const expectedResponseBody = { mock: 'successful' }
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('test error', {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(expectedResponseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+
+    await expect(
+      sut.fetch('https://example.com', {
+        attempts: 3,
+        retryDelay: 10
+      } as any)
+    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 403. Response was 'test error'`)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not retry when receiving a 404 status code error', async () => {
+    const expectedResponseBody = { mock: 'successful' }
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('test error', {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(expectedResponseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+
+    await expect(
+      sut.fetch('https://example.com', {
+        attempts: 3,
+        retryDelay: 10
+      } as any)
+    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 404. Response was 'test error'`)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
