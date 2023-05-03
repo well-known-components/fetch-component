@@ -6,6 +6,7 @@ import { RequestOptions } from './types'
 const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404]
 const IDEMPOTENT_HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']
 
+// @public
 export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent {
   async function fetch(url: nodeFetch.RequestInfo, options?: RequestOptions): Promise<nodeFetch.Response> {
     const { timeout, method = 'GET', retryDelay = 0, abortController, ...fetchOptions } = options || {}
