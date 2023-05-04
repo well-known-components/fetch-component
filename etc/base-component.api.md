@@ -6,7 +6,7 @@
 
 import { IFetchComponent } from '@well-known-components/interfaces';
 
-// @public (undocumented)
+// @public
 export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent;
 
 // (No @packageDocumentation comment for this package)
