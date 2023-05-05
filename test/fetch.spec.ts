@@ -1,5 +1,5 @@
 import { IFetchComponent } from '@well-known-components/interfaces'
-import { createFetchComponent } from './../src/index'
+import createFetchComponent from './../src/fetcher'
 
 import fetchMock from 'jest-fetch-mock'
 
