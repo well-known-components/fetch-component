@@ -1,0 +1,6 @@
+dist
+jest.config.js
+scripts
+coverage
+test/setup.server.js
+docs
