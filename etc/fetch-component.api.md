@@ -5,18 +5,9 @@
 ```ts
 
 import { IFetchComponent } from '@well-known-components/interfaces';
-import * as nodeFetch from 'node-fetch';
 
 // @public
 export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent;
-
-// @public (undocumented)
-export type RequestOptions = nodeFetch.RequestInit & {
-    abortController?: AbortController;
-    timeout?: number;
-    attempts?: number;
-    retryDelay?: number;
-};
 
 // (No @packageDocumentation comment for this package)
 

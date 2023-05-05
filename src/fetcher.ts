@@ -9,8 +9,8 @@ async function fetchWithRetriesAndTimeout(
   url: nodeFetch.RequestInfo,
   options: RequestOptions
 ): Promise<nodeFetch.Response> {
-  const { timeout, abortController, attempts, signal: timeoutSignal, retryDelay } = options
-  let currentAttempt = 0
+  const { timeout, abortController, signal: timeoutSignal, retryDelay } = options
+  let attempts = options.attempts!
   let timer: NodeJS.Timeout | null = null
   let response: Response | undefined = undefined
 
@@ -36,20 +36,16 @@ async function fetchWithRetriesAndTimeout(
         })
       ])
 
-      ++currentAttempt
+      --attempts
 
       response = (await racePromise) as any
 
       if (timer) clearTimeout(timer)
     } finally {
-      if (
-        !!response &&
-        (response.ok || NON_RETRYABLE_STATUS_CODES.includes(response.status) || currentAttempt >= attempts!)
-      )
-        break
+      if (!!response && (response.ok || NON_RETRYABLE_STATUS_CODES.includes(response.status) || attempts === 0)) break
       else await new Promise((resolve) => setTimeout(resolve, retryDelay))
     }
-  } while ((!response || !response.ok) && currentAttempt < attempts!)
+  } while ((!response || !response.ok) && attempts > 0)
 
   return response as any
 }
@@ -59,13 +55,13 @@ async function fetchWithRetriesAndTimeout(
  * Creates a fetch component
  * @param defaultHeaders - default headers to be injected on every call performed by this component
  */
-export default function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent {
+export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent {
   async function fetch(url: nodeFetch.RequestInfo, options?: RequestOptions): Promise<nodeFetch.Response> {
     // Parse options
     const { timeout, method = 'GET', retryDelay = 0, abortController, ...fetchOptions } = options || {}
+    let attempts = fetchOptions.attempts || 1
     const controller = abortController || new AbortController()
     const { signal } = controller
-    let attempts = fetchOptions.attempts || 1
 
     // Add default headers
     if (defaultHeaders) fetchOptions.headers = { ...(fetchOptions.headers || {}), ...defaultHeaders } as any
@@ -76,8 +72,8 @@ export default function createFetchComponent(defaultHeaders?: HeadersInit): IFet
     // Fetch with retries and timeout
     const response = await fetchWithRetriesAndTimeout(url, {
       ...fetchOptions,
-      method,
       attempts,
+      method,
       timeout,
       retryDelay,
       signal: signal as any,

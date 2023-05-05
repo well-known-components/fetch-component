@@ -1,1 +1,1 @@
-export { default as createFetchComponent } from './fetcher'
+export { createFetchComponent } from './fetcher'
