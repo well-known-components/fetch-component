@@ -31,7 +31,7 @@ async function fetchWithRetriesAndTimeout(
         fetchPromise,
         new Promise((resolve, _) => {
           timeoutSignal!.addEventListener('abort', () => {
-            resolve(new Response('timeout', { status: 408, statusText: 'Request Timeout' }))
+            resolve(new crossFetch.Response('timeout', { status: 408, statusText: 'Request Timeout' }))
           })
         })
       ])
