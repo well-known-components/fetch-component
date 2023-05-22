@@ -1,14 +1,10 @@
 import * as crossFetch from 'cross-fetch'
-import * as nodeFetch from 'node-fetch'
-import { IFetchComponent, RequestOptions } from '@well-known-components/interfaces'
+import { IFetchComponent, RequestOptions, Request, Response } from '@well-known-components/interfaces'
 
 const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404]
 const IDEMPOTENT_HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']
 
-async function fetchWithRetriesAndTimeout(
-  url: nodeFetch.RequestInfo,
-  options: RequestOptions
-): Promise<nodeFetch.Response> {
+async function fetchWithRetriesAndTimeout(url: Request, options: RequestOptions): Promise<Response> {
   const { timeout, abortController, signal: timeoutSignal, retryDelay } = options
   let attempts = options.attempts!
   let timer: NodeJS.Timeout | null = null
@@ -56,7 +52,7 @@ async function fetchWithRetriesAndTimeout(
  * @param defaultHeaders - default headers to be injected on every call performed by this component
  */
 export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent {
-  async function fetch(url: nodeFetch.RequestInfo, options?: RequestOptions): Promise<nodeFetch.Response> {
+  async function fetch(url: Request, options?: RequestOptions): Promise<Response> {
     // Parse options
     const { timeout, method = 'GET', retryDelay = 0, abortController, ...fetchOptions } = options || {}
     let attempts = fetchOptions.attempts || 1
