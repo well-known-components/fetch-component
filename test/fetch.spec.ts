@@ -129,7 +129,7 @@ describe('fetchComponent', () => {
   it('should make a successful request with defaultHeaders', async () => {
     const customHeader = { 'X-Custom': 'Test' }
 
-    sut = createFetchComponent(customHeader)
+    sut = createFetchComponent({ defaultHeaders: customHeader })
 
     fetchMock.mockResolvedValue(
       new Response('test', {
@@ -141,6 +141,59 @@ describe('fetchComponent', () => {
     await sut.fetch('https://example.com')
 
     expect(fetchMock.mock.calls[0][1].headers).toEqual(customHeader)
+  })
+
+  it('should successfully override a defaultHeaders when the fetcher is called with the same option', async () => {
+    const overwrittenHeader = { 'X-Custom': 'Override' }
+
+    sut = createFetchComponent({ defaultHeaders: { 'X-Custom': 'Test' } })
+
+    fetchMock.mockResolvedValue(
+      new Response('test', {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    await sut.fetch('https://example.com', { headers: overwrittenHeader })
+
+    expect(fetchMock.mock.calls[0][1].headers).toEqual(overwrittenHeader)
+  })
+
+  // Setting a default body is not a valid use case, anyways this test is only to validate
+  // that the default options are taking into account
+  it('should make a successful request with defaultFetcherOptions', async () => {
+    const defaultBodyOption = JSON.stringify({ test: 'test' })
+
+    sut = createFetchComponent({ defaultFetcherOptions: { body: defaultBodyOption } })
+
+    fetchMock.mockResolvedValue(
+      new Response('test', {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    await sut.fetch('https://example.com')
+
+    expect(fetchMock.mock.calls[0][1].body).toEqual(defaultBodyOption)
+  })
+
+  it('should successfully override a defaultFetcherOptions when the fetcher is called with the same option', async () => {
+    const overwrittenBody = JSON.stringify({ overwritten: 'overwritten' })
+
+    sut = createFetchComponent({ defaultFetcherOptions: { body: JSON.stringify({ test: 'test' }) } })
+
+    fetchMock.mockResolvedValue(
+      new Response('test', {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    await sut.fetch('https://example.com', { body: overwrittenBody })
+
+    expect(fetchMock.mock.calls[0][1].body).toEqual(overwrittenBody)
   })
 
   it('should not retry when performing a POST', async () => {

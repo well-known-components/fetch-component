@@ -1,5 +1,6 @@
 import * as crossFetch from 'cross-fetch'
 import { IFetchComponent, RequestOptions, Request, Response } from '@well-known-components/interfaces'
+import { FetcherOptions } from './types'
 
 const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404]
 const IDEMPOTENT_HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']
@@ -51,16 +52,18 @@ async function fetchWithRetriesAndTimeout(url: Request, options: RequestOptions)
  * Creates a fetch component
  * @param defaultHeaders - default headers to be injected on every call performed by this component
  */
-export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent {
+export function createFetchComponent(defaultOptions?: FetcherOptions): IFetchComponent {
   async function fetch(url: Request, options?: RequestOptions): Promise<Response> {
     // Parse options
-    const { timeout, method = 'GET', retryDelay = 0, abortController, ...fetchOptions } = options || {}
+    const optionsWithDefault = { ...defaultOptions?.defaultFetcherOptions, ...options }
+    const { timeout, method = 'GET', retryDelay = 0, abortController, ...fetchOptions } = optionsWithDefault || {}
     let attempts = fetchOptions.attempts || 1
     const controller = abortController || new AbortController()
     const { signal } = controller
 
     // Add default headers
-    if (defaultHeaders) fetchOptions.headers = { ...(fetchOptions.headers || {}), ...defaultHeaders } as any
+    if (defaultOptions?.defaultHeaders)
+      fetchOptions.headers = { ...defaultOptions?.defaultHeaders, ...(fetchOptions.headers || {}) } as any
 
     // Fix attempts in case of POST
     if (!IDEMPOTENT_HTTP_METHODS.includes(method.toUpperCase())) attempts = 1
