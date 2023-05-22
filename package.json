@@ -40,8 +40,7 @@
     "dist"
   ],
   "dependencies": {
-    "@types/node-fetch": "^2.5.12",
-    "@well-known-components/interfaces": "^1.4.0",
+    "@well-known-components/interfaces": "^1.4.1",
     "cross-fetch": "^3.1.5"
   }
 }
