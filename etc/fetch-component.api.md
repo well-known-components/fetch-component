@@ -5,9 +5,12 @@
 ```ts
 
 import { IFetchComponent } from '@well-known-components/interfaces';
+import { RequestOptions } from '@well-known-components/interfaces';
 
+// Warning: (ae-forgotten-export) The symbol "FetcherOptions" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function createFetchComponent(defaultHeaders?: HeadersInit): IFetchComponent;
+export function createFetchComponent(defaultOptions?: FetcherOptions): IFetchComponent;
 
 // (No @packageDocumentation comment for this package)
 
