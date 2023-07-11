@@ -1,6 +1,7 @@
 import * as crossFetch from 'cross-fetch'
 import { IFetchComponent, RequestOptions, Request, Response } from '@well-known-components/interfaces'
 import { FetcherOptions } from './types'
+import { isUsingNode } from './environment'
 
 const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404]
 const IDEMPOTENT_HTTP_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']
@@ -83,6 +84,15 @@ export function createFetchComponent(defaultOptions?: FetcherOptions): IFetchCom
     if (!response?.ok) {
       const responseText = await response?.text()
       throw new Error(`Failed to fetch ${url}. Got status ${response?.status}. Response was '${responseText}'`)
+    }
+
+    if (!isUsingNode() && !!response) {
+      Object.defineProperty(response, 'buffer', {
+        value: async function (): Promise<Buffer> {
+          return Buffer.from(await response!.arrayBuffer())
+        },
+        configurable: true
+      })
     }
 
     // Parse response in case of abortion
