@@ -1,5 +1,6 @@
 import { IFetchComponent } from '@well-known-components/interfaces'
 import { createFetchComponent } from './../src/fetcher'
+import * as environment from '../src/environment'
 
 import fetchMock from 'jest-fetch-mock'
 
@@ -330,5 +331,47 @@ describe('fetchComponent', () => {
     ).rejects.toThrow(`Failed to fetch https://example.com. Got status 404. Response was 'test error'`)
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('should expose .buffer function even when it is not called from a Node environment', async () => {
+    const expectedResponseBody = { mock: 'successful', ok: true }
+    jest.spyOn(environment, 'isUsingNode').mockReturnValue(false)
+
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify(expectedResponseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response).toBeDefined()
+    expect(response.buffer).toBeDefined()
+  })
+
+  it('should read buffer correctly from .buffer function even when it is not called from a Node environment', async () => {
+    const expectedResponseBody = { mock: 'successful', ok: true }
+    jest.spyOn(environment, 'isUsingNode').mockReturnValue(false)
+
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify(expectedResponseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    const bufferedResponse = await response.buffer()
+
+    const parsedBufferedResponse = JSON.parse(bufferedResponse.toString())
+    expect(parsedBufferedResponse).toEqual(expectedResponseBody)
   })
 })
