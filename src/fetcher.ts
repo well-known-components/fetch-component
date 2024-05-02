@@ -80,6 +80,17 @@ export function createFetchComponent(defaultOptions?: FetcherOptions): IFetchCom
       abortController: controller
     })
 
+    // Throw in case of error if not prevented
+    if (!response?.ok && !defaultOptions?.preventThrowing) {
+      const responseText = await response?.text()
+      throw new Error(`Failed to fetch ${url}. Got status ${response?.status}. Response was '${responseText}'`)
+    }
+
+    // Always throw in case of client side abort
+    if (signal.aborted) {
+      throw new Error('Request aborted (timed out)')
+    }
+
     if (!isUsingNode() && !!response) {
       Object.defineProperty(response, 'buffer', {
         value: async function (): Promise<Buffer> {
@@ -87,10 +98,6 @@ export function createFetchComponent(defaultOptions?: FetcherOptions): IFetchCom
         },
         configurable: true
       })
-    }
-
-    if (signal.aborted) {
-      throw new Error('Request aborted (timed out)')
     }
 
     return response

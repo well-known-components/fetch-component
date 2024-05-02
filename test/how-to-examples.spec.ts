@@ -14,9 +14,7 @@ describe('How to', () => {
     // Abort fetch using AbortController
     controller.abort()
 
-    // Fetch is not done, undefined response is returned
-    const response = await fetchPromise
-    expect(response).toBeUndefined()
+    await expect(fetchPromise).rejects.toThrow(`Request aborted (timed out)`)
   })
 
   it('buffer a response', async () => {
