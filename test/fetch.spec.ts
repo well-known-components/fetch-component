@@ -58,20 +58,31 @@ describe('fetchComponent', () => {
     expect(response).toEqual(expectedResponseBody)
   })
 
-  it('should throw an error when all retries fail', async () => {
-    fetchMock.mockResolvedValue(
-      new Response('test error', {
-        status: 503,
-        headers: { 'Content-Type': 'text/plain' }
-      })
-    )
+  it('should not throw an error when all retries fail but return latest response', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('test error', {
+          status: 502,
+          headers: { 'Content-Type': 'text/plain' }
+        })
+      )
+      .mockResolvedValue(
+        new Response('test error', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain' }
+        })
+      )
 
-    await expect(
-      sut.fetch('https://example.com', {
-        attempts: 3,
-        retryDelay: 10
-      } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 503. Response was 'test error'`)
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response instanceof Response).toBe(true)
+    expect(response.status).toBe(503)
+    expect(response.statusText).toBe('Service Unavailable')
+    const bodyBuffer = await response.buffer()
+    expect(bodyBuffer.toString()).toBe('test error')
 
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
@@ -97,7 +108,7 @@ describe('fetchComponent', () => {
       sut.fetch('https://example.com', {
         timeout: 500
       } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 408. Response was 'timeout'`)
+    ).rejects.toThrow('Request aborted (timed out)')
 
     clearTimeout(timer)
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -214,13 +225,17 @@ describe('fetchComponent', () => {
         })
       )
 
-    await expect(
-      sut.fetch('https://example.com', {
-        method: 'POST',
-        attempts: 3,
-        retryDelay: 10
-      } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 503. Response was 'test error'`)
+    const response = await sut.fetch('https://example.com', {
+      method: 'POST',
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response instanceof Response).toBe(true)
+    expect(response.status).toBe(503)
+    expect(response.statusText).toBe('Service Unavailable')
+    const bodyBuffer = await response.buffer()
+    expect(bodyBuffer.toString()).toBe('test error')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
@@ -242,12 +257,16 @@ describe('fetchComponent', () => {
         })
       )
 
-    await expect(
-      sut.fetch('https://example.com', {
-        attempts: 3,
-        retryDelay: 10
-      } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 400. Response was 'test error'`)
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response instanceof Response).toBe(true)
+    expect(response.status).toBe(400)
+    expect(response.statusText).toBe('Bad Request')
+    const bodyBuffer = await response.buffer()
+    expect(bodyBuffer.toString()).toBe('test error')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
@@ -269,12 +288,16 @@ describe('fetchComponent', () => {
         })
       )
 
-    await expect(
-      sut.fetch('https://example.com', {
-        attempts: 3,
-        retryDelay: 10
-      } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 401. Response was 'test error'`)
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response instanceof Response).toBe(true)
+    expect(response.status).toBe(401)
+    expect(response.statusText).toBe('Unauthorized')
+    const bodyBuffer = await response.buffer()
+    expect(bodyBuffer.toString()).toBe('test error')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
@@ -296,12 +319,16 @@ describe('fetchComponent', () => {
         })
       )
 
-    await expect(
-      sut.fetch('https://example.com', {
-        attempts: 3,
-        retryDelay: 10
-      } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 403. Response was 'test error'`)
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response instanceof Response).toBe(true)
+    expect(response.status).toBe(403)
+    expect(response.statusText).toBe('Forbidden')
+    const bodyBuffer = await response.buffer()
+    expect(bodyBuffer.toString()).toBe('test error')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
@@ -323,12 +350,16 @@ describe('fetchComponent', () => {
         })
       )
 
-    await expect(
-      sut.fetch('https://example.com', {
-        attempts: 3,
-        retryDelay: 10
-      } as any)
-    ).rejects.toThrow(`Failed to fetch https://example.com. Got status 404. Response was 'test error'`)
+    const response = await sut.fetch('https://example.com', {
+      attempts: 3,
+      retryDelay: 10
+    } as any)
+
+    expect(response instanceof Response).toBe(true)
+    expect(response.status).toBe(404)
+    expect(response.statusText).toBe('Not Found')
+    const bodyBuffer = await response.buffer()
+    expect(bodyBuffer.toString()).toBe('test error')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
